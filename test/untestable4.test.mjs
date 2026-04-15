@@ -53,5 +53,18 @@ describe("Untestable 4: enterprise application", () => {
 
       await users.save(user);
     });
+
+    test("getById returns a user with matching id", async () => {
+      const user = { userId: "199", passwordHash: "hash" };
+
+      await users.save(user);
+      const returnedUser = await users.getById(199);
+      expect(returnedUser.userId).to.equal(199);
+    });
+
+    test("getById returns null if no user is found with matching id", async () => {
+      const failedUser = await users.getById(Math.floor(Math.random() * 1000));
+      expect(failedUser).to.be.equal(null);
+    });
   });
 });
