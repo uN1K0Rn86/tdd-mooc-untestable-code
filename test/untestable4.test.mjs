@@ -21,9 +21,37 @@ describe("Untestable 4: enterprise application", () => {
 
       service = new PasswordService(fakeUsers);
     });
+
     test("changes password when old password is correct", async () => {
       await service.changePassword("moro", "old-password", "new-password");
       expect(argon2.verifySync(fakeUsers.user.passwordHash, "new-password")).to.equal(true);
+    });
+
+    test("throws error when old password is wrong", async () => {
+      try {
+        await service.changePassword("moro", "wrong-password", "new-password");
+        throw new Error("should fail");
+      } catch (err) {
+        expect(err.message).to.equal("wrong old password");
+      }
+    });
+  });
+
+  describe("PostgresUserDao", () => {
+    let users;
+
+    beforeEach(() => {
+      users = new PostgresUserDao();
+    });
+
+    afterEach(async () => {
+      await users.close();
+    });
+
+    test("allows new user to be created", async () => {
+      const user = { userId: "101", passwordHash: "hash" };
+
+      await users.save(user);
     });
   });
 });
