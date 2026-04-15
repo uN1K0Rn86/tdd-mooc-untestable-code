@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { parse } from "csv-parse/sync";
 
+// Everything is done in one function, separate into read and process for better testing
 export async function parsePeopleCsv(filePath) {
   const csvData = await readFile(filePath, { encoding: "utf8" });
   const records = parse(csvData, {

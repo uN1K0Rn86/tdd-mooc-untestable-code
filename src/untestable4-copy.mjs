@@ -2,22 +2,17 @@ import argon2 from "@node-rs/argon2";
 import pg from "pg";
 
 export class PostgresUserDao {
-  static instance;
-  // Singleton, should replace with JCO
-  static getInstance() {
-    if (!this.instance) {
-      this.instance = new PostgresUserDao();
-    }
-    return this.instance;
+  constructor(
+    db = new pg.Pool({
+      user: process.env.PGUSER,
+      host: process.env.PGHOST,
+      database: process.env.PGDATABASE,
+      password: process.env.PGPASSWORD,
+      port: process.env.PGPORT,
+    }),
+  ) {
+    this.db = db;
   }
-
-  db = new pg.Pool({
-    user: process.env.PGUSER,
-    host: process.env.PGHOST,
-    database: process.env.PGDATABASE,
-    password: process.env.PGPASSWORD,
-    port: process.env.PGPORT,
-  });
 
   close() {
     this.db.end();
@@ -49,8 +44,9 @@ export class PostgresUserDao {
 }
 
 export class PasswordService {
-  // Pass instance to passwordservice instead
-  users = PostgresUserDao.getInstance();
+  constructor(users) {
+    this.users = users;
+  }
 
   async changePassword(userId, oldPassword, newPassword) {
     const user = await this.users.getById(userId);

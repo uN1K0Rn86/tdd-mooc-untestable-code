@@ -1,17 +1,29 @@
 import { afterEach, beforeEach, describe, test } from "vitest";
-import { PasswordService, PostgresUserDao } from "../src/untestable4.mjs";
+import { expect } from "chai";
+import argon2 from "@node-rs/argon2";
+import { PasswordService, PostgresUserDao } from "../src/untestable4-copy.mjs";
 
 describe("Untestable 4: enterprise application", () => {
-  let service;
-  beforeEach(() => {
-    service = new PasswordService();
-  });
+  describe("PasswordService", () => {
+    let fakeUsers;
+    let service;
 
-  afterEach(() => {
-    PostgresUserDao.getInstance().close();
-  });
+    beforeEach(() => {
+      fakeUsers = {
+        user: { userId: "moro", passwordHash: argon2.hashSync("old-password") },
+        getById: async function (userId) {
+          return userId === this.user.userId ? this.user : null;
+        },
+        save: async function (user) {
+          this.user = user;
+        },
+      };
 
-  test("todo", async () => {
-    // TODO: write proper tests for both PasswordService and PostgresUserDao
+      service = new PasswordService(fakeUsers);
+    });
+    test("changes password when old password is correct", async () => {
+      await service.changePassword("moro", "old-password", "new-password");
+      expect(argon2.verifySync(fakeUsers.user.passwordHash, "new-password")).to.equal(true);
+    });
   });
 });
